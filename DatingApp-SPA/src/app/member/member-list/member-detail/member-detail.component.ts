@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { UserService } from 'src/app/_services/user.service';
 import { AlertifyService } from 'src/app/_services/alertify.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { User } from 'src/app/_models/User';
 import { NgxGalleryOptions, NgxGalleryImage, NgxGalleryAnimation } from 'ngx-gallery';
+import { TabsetComponent } from 'ngx-bootstrap';
 
 @Component({
   selector: 'app-member-detail',
@@ -11,6 +12,7 @@ import { NgxGalleryOptions, NgxGalleryImage, NgxGalleryAnimation } from 'ngx-gal
   styleUrls: ['./member-detail.component.css']
 })
 export class MemberDetailComponent implements OnInit {
+  @ViewChild('memberTabs', { static: true }) staticTabs: TabsetComponent;
   user: User;
   galleryOptions: NgxGalleryOptions[];
   galleryImages: NgxGalleryImage[];
@@ -20,6 +22,13 @@ export class MemberDetailComponent implements OnInit {
   ngOnInit() {
     this.router.data.subscribe(data => {
       this.user = data['user'];
+      console.log(this.staticTabs);
+    });
+    // learn more on query params https://alligator.io/angular/query-parameters/
+    this.router.queryParams.subscribe(params =>{
+      const selectedTab = params['tab'];
+      this.staticTabs.tabs[selectedTab > 0 ? selectedTab : 0].active = true;
+      
     });
 
     this.galleryOptions=[
@@ -53,12 +62,9 @@ export class MemberDetailComponent implements OnInit {
 
   }
 
-  //loadUser(){
-   // this.userService.getUser(+this.router.snapshot.params['id']).subscribe((user: User)=>{
-     // this.user = user;
-    //},error=>{
-      //  this.alertifyService.error(error);
-    //});
-  //}
+  selectTab(tabId: number) {
+    console.log(this.staticTabs);
+    this.staticTabs.tabs[tabId].active = true;
+  }
 
 }
