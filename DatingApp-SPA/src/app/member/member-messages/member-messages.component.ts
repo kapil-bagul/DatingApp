@@ -21,7 +21,7 @@ export class MemberMessagesComponent implements OnInit {
   ngOnInit() {
     this.loadMessages();
   }
-  // Details on Tab rxjs operator ( https://dev.to/nickraphael/what-is-the-rxjs-tap-function-used-for-4pa8 )
+  // Details on tap rxjs operator ( https://dev.to/nickraphael/what-is-the-rxjs-tap-function-used-for-4pa8 )
   loadMessages(){
     const currentUserId = +this.authService.decodedToken.nameid;
     this.userService.getMessageThread(this.authService.decodedToken.nameid, this.recipientId)
