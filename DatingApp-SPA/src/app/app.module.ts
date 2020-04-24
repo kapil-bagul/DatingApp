@@ -1,6 +1,6 @@
 import { BrowserModule, HammerGestureConfig, HAMMER_GESTURE_CONFIG } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { BsDropdownModule, TabsModule, BsDatepickerModule, PaginationModule, ButtonsModule } from 'ngx-bootstrap';
+import { BsDropdownModule, TabsModule, BsDatepickerModule, PaginationModule, ButtonsModule, ModalModule } from 'ngx-bootstrap';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 import { JwtModule } from '@auth0/angular-jwt';
@@ -31,6 +31,12 @@ import { PhotoEditorComponent } from './member/photo-editor/photo-editor.compone
 import { ListResolver } from './_resolver/list.resolver';
 import { MessagesResolver } from './_resolver/messages-resolver';
 import { MemberMessagesComponent } from './member/member-messages/member-messages.component';
+import { AdminPanelComponent } from './admin/admin-panel/admin-panel.component';
+import { HasRoleDirective } from './_directives/hasRole.directive';
+import { UserManagementComponent } from './admin/user-management/user-management.component';
+import { PhotoManagementComponent } from './admin/photo-management/photo-management.component';
+import { AdminService } from './_services/admin.service';
+import { RolesModelComponent } from './admin/roles-model/roles-model.component';
 
 
 
@@ -59,9 +65,15 @@ export class CustomHammerConfig extends HammerGestureConfig  {
       MemberEditComponent,
       PhotoEditorComponent,
       TimeAgoPipe,
-      MemberMessagesComponent
+      MemberMessagesComponent,
+      AdminPanelComponent,
+      HasRoleDirective,
+      UserManagementComponent,
+      PhotoManagementComponent,
+      RolesModelComponent
    ],
    imports: [
+      ModalModule.forRoot(),
       BrowserModule,
       HttpClientModule,
       FormsModule,
@@ -84,6 +96,7 @@ export class CustomHammerConfig extends HammerGestureConfig  {
       })
    ],
    providers: [
+      AdminService,
       AuthService,
       ErrorInterceptorProvider,
       MemberDetailResolver,
@@ -93,6 +106,9 @@ export class CustomHammerConfig extends HammerGestureConfig  {
       MessagesResolver,
       PreventUnsavedChanges,
       { provide: HAMMER_GESTURE_CONFIG, useClass: CustomHammerConfig }
+   ],
+   entryComponents:[
+      RolesModelComponent
    ],
    bootstrap: [
       AppComponent
