@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace testapi.Controllers
 {
-    [Authorize]
+    
     [Route("api/[controller]")]
     [ApiController]
     public class ValuesController : ControllerBase
@@ -21,15 +21,16 @@ namespace testapi.Controllers
         }
         // GET api/values
         
-        [AllowAnonymous]
+        [Authorize(Roles="Admin")]
         [HttpGet]
         public async Task<IActionResult> GetValues()
         {
             var values = await _dataContext.Values.ToListAsync();
             return Ok(values);
         }
-[AllowAnonymous]
+
         // GET api/values/5
+        [Authorize(Roles="Member")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetValue(int id)
         {

@@ -7,13 +7,17 @@ using System.Threading.Tasks;
 using AutoMapper;
 using DatingApp.API.Data;
 using DatingApp.API.Helpers;
+using DatingApp.API.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,32 +47,30 @@ namespace DatingApp.API
 
         public void ConfigureProductionServices(IServiceCollection services)
         {
-                services.AddDbContext<DataContext>(x => {
-                        x.UseLazyLoadingProxies();
-                        x.UseMySql(Configuration.GetConnectionString("DefaultConnection"));
-                } );
-                ConfigureServices(services);
+                 services.AddDbContext<DataContext>(x => {
+                         x.UseLazyLoadingProxies();
+                         x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
+                 } );
+                 ConfigureServices(services);
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             
-            
-            services.AddControllers().AddNewtonsoftJson(opt =>{
-                opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json
-                .ReferenceLoopHandling.Ignore;
+            IdentityBuilder builder = services.AddIdentityCore<User>(opt => {
+                    opt.Password.RequireDigit = false;
+                    opt.Password.RequiredLength=4;
+                    opt.Password.RequireNonAlphanumeric=false;
+                    opt.Password.RequireUppercase=false;
             });
-            services.AddCors();
 
-            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
+            builder = new IdentityBuilder(builder.UserType, typeof(Role),builder.Services);
+            builder.AddEntityFrameworkStores<DataContext>();
+            builder.AddRoleValidator<RoleValidator<Role>>();
+            builder.AddRoleManager<RoleManager<Role>>();
+            builder.AddSignInManager<SignInManager<User>>();
 
-           services.AddAutoMapper(typeof(DatingRepository).Assembly);
-            // Register services
-            services.AddScoped<IAuthRepository,AuthRepository>();
-            services.AddScoped<IDatingRepository,DatingRepository>();
-            services.AddScoped<LogUserActivity>();
-            
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(option => { 
                 option.TokenValidationParameters = new TokenValidationParameters
@@ -79,6 +81,35 @@ namespace DatingApp.API
                    ValidateAudience=false    
                 };
             });
+
+            // Add authorization policy
+            services.AddAuthorization(option => {
+                option.AddPolicy("RequiredAdminRole", policy => policy.RequireRole("Admin"));
+                option.AddPolicy("ModeratePhotoRole", policy => policy.RequireRole("Admin","Moderator"));
+                option.AddPolicy("VipOnly", policy => policy.RequireRole("VIP"));
+            });
+
+            services.AddControllers(options =>{
+                var policy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+
+                options.Filters.Add(new AuthorizeFilter(policy));
+            }).AddNewtonsoftJson(opt =>{
+                opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json
+                .ReferenceLoopHandling.Ignore;
+            });
+            services.AddCors();
+
+            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
+
+           services.AddAutoMapper(typeof(DatingRepository).Assembly);
+            // Register services
+           
+            services.AddScoped<IDatingRepository,DatingRepository>();
+            services.AddScoped<LogUserActivity>();
+            
+           
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
